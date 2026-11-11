@@ -73,15 +73,24 @@ final class Paster: NSObject {
     }
 
     private func paste(_ type: NSPasteboard.PasteboardType, into target: NSRunningApplication?) {
-        let original: [[(NSPasteboard.PasteboardType, Data)]] = (pb.pasteboardItems ?? []).map { item in
-            item.types.compactMap { t in item.data(forType: t).map { (t, $0) } }
-        }
-
         let richText = UTType(type.rawValue).map { $0.conforms(to: .text) && !$0.conforms(to: .plainText) } ?? false
         func keep(_ t: NSPasteboard.PasteboardType) -> Bool {
             if t == type { return true }
             guard richText else { return false }
             return t == .string || !t.rawValue.hasPrefix("public.")
+        }
+
+        let items = pb.pasteboardItems ?? []
+        if items.allSatisfy({ $0.types.contains(type) && $0.types.allSatisfy(keep) }) {
+            target?.activate(options: [])
+            Self.waitUntilFrontmost(target, deadline: Date().addingTimeInterval(2)) {
+                Self.postCommandV()
+            }
+            return
+        }
+
+        let original: [[(NSPasteboard.PasteboardType, Data)]] = items.map { item in
+            item.types.compactMap { t in item.data(forType: t).map { (t, $0) } }
         }
 
         let only = original.compactMap { reps -> NSPasteboardItem? in
