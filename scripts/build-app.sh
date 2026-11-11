@@ -14,8 +14,19 @@ KEYCHAIN="${KEYCHAIN:-}"
 swift build -c release --product "$NAME"
 
 rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp ".build/release/${NAME}" "$APP/Contents/MacOS/${NAME}"
+
+# アイコン。scripts/make-icon.swift で描いた絵から、大きさごとの絵を作って .icns にまとめる。
+icons=.build/AppIcon.iconset
+rm -rf "$icons"
+mkdir -p "$icons"
+swift scripts/make-icon.swift .build/AppIcon.png
+for n in 16 32 128 256 512; do
+  sips -z $n $n .build/AppIcon.png --out "$icons/icon_${n}x${n}.png" >/dev/null
+  sips -z $((n * 2)) $((n * 2)) .build/AppIcon.png --out "$icons/icon_${n}x${n}@2x.png" >/dev/null
+done
+iconutil -c icns "$icons" -o "$APP/Contents/Resources/AppIcon.icns"
 
 cat > "$APP/Contents/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -28,6 +39,8 @@ cat > "$APP/Contents/Info.plist" <<EOF
     <string>${NAME}</string>
     <key>CFBundleExecutable</key>
     <string>${NAME}</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
