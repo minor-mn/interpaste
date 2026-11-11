@@ -11,7 +11,7 @@ Macでペーストの書式を選ぶ常駐アプリです。
 
 `⌘V` は従来通り使えます。
 
-![interpaste のメニュー](images/screenshot.webp)
+<img src="images/screenshot.webp" alt="interpaste のメニュー" width="86">
 
 ## インストール
 
