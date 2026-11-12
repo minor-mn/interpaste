@@ -22,7 +22,7 @@ final class Paster: NSObject {
                 types.append(t)
             }
         }
-        if types.contains(where: EntryContent.isImage) {
+        if types.contains(where: EntryContent.isImage) && !types.contains(.string) {
             types.removeAll { !EntryContent.isImage($0) }
         }
         if types.contains(.string) {
